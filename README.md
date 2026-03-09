@@ -1,13 +1,21 @@
 # mcpli
 
-Turn MCP servers into native CLI applications with shell completion.
+**One command to turn any MCP server into a CLI tool.**
+
+```bash
+mcpli add knuspr https://mcp.knuspr.de/mcp/ \
+  --header 'rhl-email: ${ROHLIK_USERNAME}' \
+  --header 'rhl-pass: ${ROHLIK_PASSWORD}'
+mcpli knuspr batch_search_products '{"queries": [{"keyword": "milk"}]}'
+```
 
 ## Features
 
-- 🔍 **Discoverable** - Tab completion for servers AND tools in your shell
-- 📖 **Self-documenting** - `--help` shows full tool descriptions at every level
-- ⚡ **Instant** - Tools cached locally, no server roundtrip for discovery
-- 🔧 **Familiar** - Works like any CLI you already use (git, kubectl, etc.)
+- ⚡ **Instant** — `mcpli add` connects, fetches tools, and you're ready to go. No manual setup
+- 🔍 **Discoverable** — Tab completion for servers AND tools in your shell
+- 📖 **Self-documenting** — `--help` shows full tool descriptions at every level
+- 🔧 **Familiar** — Works like any CLI you already use (git, kubectl, etc.)
+- 🤖 **Agent-friendly** — AI agents can add and use MCP servers with a single command
 
 ## Quick Start
 
@@ -107,8 +115,8 @@ Headers can include environment variable references using `${VAR_NAME}` syntax:
 
 ```bash
 mcpli add knuspr https://mcp.knuspr.de/mcp/ \
-  --header 'auth-email: ${MY_EMAIL}' \
-  --header 'auth-pass: ${MY_PASSWORD}'
+  --header 'rhl-email: ${ROHLIK_USERNAME}' \
+  --header 'rhl-pass: ${ROHLIK_PASSWORD}'
 ```
 
 This connects to the server, fetches all available tools, and caches them locally.
