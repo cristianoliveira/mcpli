@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -151,6 +152,8 @@ func createToolCommand(serverName string, server *config.Server, tool config.Too
 			fmt.Println(wrapped)
 			fmt.Println()
 		}
+
+		printToolInputSchema(tool)
 		fmt.Print(c.UsageString())
 	})
 
@@ -163,4 +166,26 @@ func truncateDescription(s string, maxLen int) string {
 		return s
 	}
 	return s[:maxLen-3] + "..."
+}
+
+func printToolInputSchema(tool config.Tool) {
+	if len(tool.InputSchema) == 0 {
+		return
+	}
+
+	var compact bytes.Buffer
+	if err := json.Compact(&compact, tool.InputSchema); err != nil {
+		return
+	}
+
+	var pretty bytes.Buffer
+	if err := json.Indent(&pretty, compact.Bytes(), "", "  "); err != nil {
+		return
+	}
+
+	fmt.Println("json-schema")
+	fmt.Println("```json")
+	fmt.Println(pretty.String())
+	fmt.Println("```")
+	fmt.Println()
 }
