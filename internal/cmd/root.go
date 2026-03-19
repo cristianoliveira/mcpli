@@ -13,6 +13,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type toolCallEnvelope struct {
+	IsError bool `json:"isError"`
+}
+
 var rootCmd = &cobra.Command{
 	Use:   "mcpli",
 	Short: "MCP CLI - invoke MCP server tools from the command line",
@@ -118,14 +122,14 @@ func createToolCommand(serverName string, server *config.Server, tool config.Too
 				// Validate it's valid JSON
 				var test interface{}
 				if err := json.Unmarshal(arguments, &test); err != nil {
-					return fmt.Errorf("invalid JSON arguments: %w", err)
+					return failWithToolHelp(cmd, fmt.Errorf("invalid JSON arguments: %w", err))
 				}
 			}
 
 			// Resolve headers (including OAuth token if applicable)
 			headers, err := resolveHeaders(serverName, server)
 			if err != nil {
-				return err
+				return failWithToolHelp(cmd, err)
 			}
 
 			// Create client
@@ -134,7 +138,12 @@ func createToolCommand(serverName string, server *config.Server, tool config.Too
 			// Call the tool
 			result, err := client.CallTool(tool.Name, arguments)
 			if err != nil {
-				return err
+				return failWithToolHelp(cmd, err)
+			}
+
+			var envelope toolCallEnvelope
+			if err := json.Unmarshal(result, &envelope); err == nil && envelope.IsError {
+				return failWithToolHelp(cmd, fmt.Errorf("tool returned error response: %s", string(result)))
 			}
 
 			// Output raw JSON
@@ -158,6 +167,15 @@ func createToolCommand(serverName string, server *config.Server, tool config.Too
 	})
 
 	return cmd
+}
+
+func failWithToolHelp(cmd *cobra.Command, err error) error {
+	cmd.SilenceErrors = true
+	cmd.SilenceUsage = true
+	fmt.Fprintf(os.Stderr, "Error: %v\n\n", err)
+	fmt.Println("Hint:")
+	_ = cmd.Help()
+	return err
 }
 
 // truncateDescription shortens a description for display
